@@ -14,7 +14,7 @@ export class Room{
         console.log("reach-4");
          let cnt = 0;
                 let partner:User|null = null;
-                RoomManager.getInstance().addUser(this.sender as User);
+                // RoomManager.getInstance().addUser(this.sender as User);
                 while(cnt<100000 && partner == null){
                     console.log("try - "+cnt);
                      partner = await RoomManager.getInstance().findMatch(this.sender as User, this.reciever);
@@ -23,7 +23,7 @@ export class Room{
                 }
                 if(partner == null){
                     RoomManager.getInstance().removeUser(this.sender as User);
-                    sender_socket.send(JSON.stringify({type:MessageType.FAILURE, paylaod:{
+                    sender_socket.send(JSON.stringify({type:MessageType.FAILURE, payload:{
                         error: ErrorType.NO_MATCH_FOUND
                     }}));
                     return;
@@ -34,6 +34,7 @@ export class Room{
                 // recieves an answer from signaling server;
                 // connection gets established
                 this.reciever = partner;
+                this.setReciever(partner);
         
     }
 
@@ -44,6 +45,7 @@ export class Room{
         }
         // console.log(user);
         this.sender = user;
+       
         this.getPartner(user);
         // ask manager to find a match;
         // setReciever to that match to initiate handlers 
@@ -71,8 +73,12 @@ export class Room{
     init_handlers(){
         const sender_socket = this.sender?.ws;
         const reciever_socket = this.reciever?.ws
-        if(!sender_socket || !reciever_socket)return;
+        if(!sender_socket || !reciever_socket){
+            console.log("_____________SOCKET NA HAI BHAI___________________________________");
+            return;
+        }
         sender_socket.onmessage = async(e)=>{
+            console.log("MESSAGE_AAYA_____________________________________________");
             let d:any;
             try{
              d = JSON.parse(e.data.toString());
@@ -82,18 +88,24 @@ export class Room{
             return;
             }
             const type = d.type;
-            const payload = d.paylaod;
+            const payload = d.payload;
             if(!type || !payload){
                 sender_socket.send(JSON.stringify({type:MessageType.FAILURE, error: ErrorType.INVALID_PAYLOAD}))
                 return;
             }
             if(type == RequestType.OFFER){
+                console.log("OFFER AAYA ________________________________");
                 const offer = payload.offer;
+                if(!reciever_socket){
+                    console.log("no reciever socket baby");
+                    sender_socket.send(JSON.stringify({type: "NO reciever socket baby"}))
+                }
                 if(!offer){
-                    sender_socket.send(JSON.stringify({type:MessageType.FAILURE, error: ErrorType.INVALID_PAYLOAD}))
+                    sender_socket.send(JSON.stringify({type:MessageType.FAILURE, error: ErrorType.INVALID_PAYLOAD}));
                 return;
                 }
                 reciever_socket.send(JSON.stringify({type:RequestType.OFFER, payload:{offer: offer}}));
+                console.log("offer sent to reciever boss");
             }
             else if(type == RequestType.ANSWER){
                 const answer = payload.answer;

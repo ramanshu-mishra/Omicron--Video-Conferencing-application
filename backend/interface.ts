@@ -1,4 +1,4 @@
-import { response } from "express";
+
 
 export enum MessageType{
     SUCCESS= "SUCCESS",
@@ -18,6 +18,7 @@ NO_MATCH_FOUND = "NO_MATCH_FOUND"
 }
 
 export enum RequestType{
+    SKIP="SKIP",
     SET_SENDER = "SET_SENDER",
     SET_RECIEVER = "SET_RECIEVER",
     OFFER = "OFFER",

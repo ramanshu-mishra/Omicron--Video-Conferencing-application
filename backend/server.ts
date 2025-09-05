@@ -2,8 +2,7 @@ import { WebSocketServer } from "ws";
 import dotenv from "dotenv";
 import { getGeoLocation } from "./utils";
 import { User } from "./user";
-import { RoomManager } from "./RoomManager";
-import { Room } from "./room";
+
 dotenv.config();
 
 const wss = new WebSocketServer({port:8080}, ()=>{
@@ -20,8 +19,8 @@ wss.on("connection", async(ws, req)=>{
     const geoLocation= await getGeoLocation(finalIp);
     console.log(geoLocation);  
     //  either it will fetch some location or not;
-    const user = new User();
-    user.ws = ws;
+    const user = new User(ws);
+    
     if(geoLocation.location){
         if(geoLocation.location.has("continent_name")){
             user.continent = geoLocation.location.get("continent_name");
@@ -37,7 +36,14 @@ wss.on("connection", async(ws, req)=>{
         }
     }
     console.log("reach-1");
-    const room = new Room(user);
+    // okay so the webSocket connection establishes but it starts finding new people only when we press start;
+    // once press start WebSocket will place the user into a bunch of available users;
+    // we'll start getting a match;
+    //  if we get a match I'll create Room for both parties;
+    // if anyone of them leaves ;
+    // the connection gets deestablished between the peers;
+    // so client sends a finNext request
+    // existing room gets disconnected and new room establishes with a new partner;
 });
 
 
