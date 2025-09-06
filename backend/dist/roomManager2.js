@@ -10,6 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RoomManager = void 0;
+const interface_1 = require("./interface");
+const room2_1 = require("./room2");
 class RoomManager {
     static getInstance() {
         if (this.instance)
@@ -153,24 +155,85 @@ class RoomManager {
         this.matched.delete(user);
         return;
     }
+    getPartner(sender) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const sender_socket = sender.ws;
+            console.log("reach-3");
+            if (!sender_socket)
+                return;
+            console.log("reach-4");
+            let cnt = 0;
+            let partner = null;
+            // RoomManager.getInstance().addUser(this.sender as User);
+            while (cnt < 100000 && partner == null) {
+                console.log("try - " + cnt);
+                partner = yield RoomManager.getInstance().findMatch(sender, null);
+                cnt++;
+                yield new Promise(resolve => setTimeout(resolve, 2));
+            }
+            if (partner == null) {
+                RoomManager.getInstance().removeUser(sender);
+                sender_socket.send(JSON.stringify({ type: interface_1.MessageType.FAILURE, payload: {
+                        error: interface_1.ErrorType.NO_MATCH_FOUND
+                    } }));
+                return;
+            }
+            // sender_socket.send(JSON.stringify({type:MessageType.MATCHED, payload: {message: MessageType.MATCHED}}))
+            // as soon as client gets this message it creates an RTC peer connection (if not already created);
+            // sends an offer to signaling server;
+            // recieves an answer from signaling server;
+            // connection gets established
+            console.log("____________________________________");
+            console.log(RoomManager.getInstance().getStats());
+            console.log("____________________________________");
+            // this.partner= partner;
+            return partner;
+        });
+    }
+    findPartner(user1) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (user1.room) {
+                RoomManager.getInstance().removeRoom(user1.room);
+                const ws1 = user1.room.user1.ws;
+                const ws2 = user1.room.user2.ws;
+                // doosre partner ko skipped ka message bhejo
+                if (ws1 != user1.ws) {
+                    ws1.send(JSON.stringify({ type: interface_1.RequestType.SKIP }));
+                }
+                if (ws2 != user1.ws) {
+                    ws2.send(JSON.stringify({ type: interface_1.RequestType.SKIP }));
+                }
+                user1.room = null;
+            }
+            const partner = yield this.getPartner(user1);
+            if (!partner) {
+                user1.ws.send(JSON.stringify({ type: interface_1.MessageType.FAILURE, payload: { error: interface_1.ErrorType.NO_MATCH_FOUND } }));
+                return;
+            }
+        });
+    }
     findMatch(sender_1) {
         return __awaiter(this, arguments, void 0, function* (sender, prev = null) {
-            if (this.matched.has(sender) && this.matched.get(sender) == prev) {
-                this.matched.delete(sender);
-                this.matched.delete(prev);
-            }
             this.addUser(sender);
             while (this.match_mutex) {
                 yield new Promise(resolve => setTimeout(resolve, 1));
             }
             this.match_mutex = true;
             if (this.matched.has(sender)) {
+                const partner = this.matched.get(sender);
                 console.log("_____________matched here____________");
                 this.removeUser(sender);
+                this.removeUser(partner);
                 this.removeUser(this.matched.get(sender));
                 this.match_mutex = false;
+                const room = new room2_1.Room(sender, partner);
+                sender.room = room;
+                // @ts-ignore
+                partner.room = room;
                 console.log(this.getStats());
-                return this.matched.get(sender);
+                this.matched.delete(sender);
+                this.matched.delete(partner);
+                return partner;
             }
             const partner = this.findNext(sender, prev);
             if (!partner) {
@@ -180,7 +243,8 @@ class RoomManager {
             this.matched.set(sender, partner);
             this.matched.set(partner, sender);
             this.match_mutex = false;
-            console.log("________matched here 2 baby_____________"); // all subsequent people are getting matched somehow this is bad
+            console.log("________matched here 2 baby_____________");
+            // all subsequent people are getting matched somehow this is bad
             // console.log(this.getAllUsers().length);
             return partner;
         });

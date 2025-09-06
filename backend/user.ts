@@ -40,6 +40,7 @@ import { RoomManager } from "./roomManager2";
 
                 const type = data.type;
                 if(!type){
+                    console.log("type not found");
                     this.ws?.send(JSON.stringify({type:MessageType.FAILURE, payload: {error:ErrorType.INVALID_PAYLOAD}}))
                     return;
                 }
@@ -68,8 +69,8 @@ import { RoomManager } from "./roomManager2";
                     }
 
                      // unka room banao;
-                    const room = new Room(this,partner);
-                    this.room = room;
+                    // const room = new Room(this,partner);
+                    // this.room = room;
 
                     this.ws.send(JSON.stringify({type:MessageType.MATCHED}));
                     // this creates a room  constructor adds itself to the roomManager 
@@ -77,6 +78,7 @@ import { RoomManager } from "./roomManager2";
                     // roomManager has a map of Roomid: room;
                     // through this we add and delete a room
                 }
+                // else if(type == RequestType.STOP)
             })
             
         }
@@ -92,7 +94,7 @@ import { RoomManager } from "./roomManager2";
                         // RoomManager.getInstance().addUser(this.sender as User);
                         while(cnt<100000 && partner == null){
                             console.log("try - "+cnt);
-                             partner = await RoomManager.getInstance().findMatch(this as User, this.partner);
+                             partner = await RoomManager.getInstance().findMatch(this as User, null);
                              cnt++;
                              await new Promise(resolve=>setTimeout(resolve, 2));
                         }
@@ -102,12 +104,16 @@ import { RoomManager } from "./roomManager2";
                                 error: ErrorType.NO_MATCH_FOUND
                             }}));
                             return;
+
                         }
-                        sender_socket.send(JSON.stringify({type:MessageType.MATCHED, payload: {message: MessageType.MATCHED}}))
+                        // sender_socket.send(JSON.stringify({type:MessageType.MATCHED, payload: {message: MessageType.MATCHED}}))
                         // as soon as client gets this message it creates an RTC peer connection (if not already created);
                         // sends an offer to signaling server;
                         // recieves an answer from signaling server;
                         // connection gets established
+                        console.log("____________________________________");
+                       console.log( RoomManager.getInstance().getStats());
+                         console.log("____________________________________");
                         this.partner= partner;
                         return partner;
             }

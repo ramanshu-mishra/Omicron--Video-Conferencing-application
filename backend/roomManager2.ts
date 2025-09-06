@@ -1,3 +1,4 @@
+import { ErrorType, MessageType, RequestType } from "./interface";
 import { Room } from "./room2";
 import { User } from "./user";
 
@@ -173,19 +174,69 @@ private isSameUser(user1: User, user2: User): boolean {
         return;
     }
 
+     private async getPartner(sender: User){
+                    const sender_socket = sender.ws;
+                    console.log("reach-3");
+                    if(!sender_socket)return;
+                    console.log("reach-4");
+                     let cnt = 0;
+                            let partner:User|null = null;
+                            // RoomManager.getInstance().addUser(this.sender as User);
+                            while(cnt<100000 && partner == null){
+                                console.log("try - "+cnt);
+                                 partner = await RoomManager.getInstance().findMatch(sender, null);
+                                 cnt++;
+                                 await new Promise(resolve=>setTimeout(resolve, 2));
+                            }
+                            if(partner == null){
+                                RoomManager.getInstance().removeUser(sender as User);
+                                sender_socket.send(JSON.stringify({type:MessageType.FAILURE, payload:{
+                                    error: ErrorType.NO_MATCH_FOUND
+                                }}));
+                                return;
+    
+                            }
+                            // sender_socket.send(JSON.stringify({type:MessageType.MATCHED, payload: {message: MessageType.MATCHED}}))
+                            // as soon as client gets this message it creates an RTC peer connection (if not already created);
+                            // sends an offer to signaling server;
+                            // recieves an answer from signaling server;
+                            // connection gets established
+                            console.log("____________________________________");
+                           console.log( RoomManager.getInstance().getStats());
+                             console.log("____________________________________");
+                            // this.partner= partner;
+                            return partner;
+                }
 
+   async  findPartner(user1:User){
+        if(user1.room){
+                                RoomManager.getInstance().removeRoom(user1.room);
+                                const ws1 = user1.room.user1.ws;
+                                const ws2 = user1.room.user2.ws;        
+                                 // doosre partner ko skipped ka message bhejo
+                                if(ws1 != user1.ws){
+                                    ws1.send(JSON.stringify({type: RequestType.SKIP}));
+                                }
+                                if(ws2 != user1.ws){
+                                    ws2.send(JSON.stringify({type: RequestType.SKIP}));
+                                }
+                                user1.room = null;
+                            }
+
+        const partner = await this.getPartner(user1);
+                            if(!partner){
+                                user1.ws.send(JSON.stringify({type:MessageType.FAILURE,payload:{error:ErrorType.NO_MATCH_FOUND}}));
+                                return;
+                            }
+     }
 
  async findMatch(sender:User, prev:User|null = null){
-        if(this.matched.has(sender) && this.matched.get(sender) == prev){
-            this.matched.delete(sender);
-            this.matched.delete(prev);
-        }
+        
        
         this.addUser(sender);
         while(this.match_mutex){
             await new Promise(resolve=>setTimeout(resolve, 1));
         }
-
         this.match_mutex = true;
 
         if(this.matched.has(sender)){
@@ -195,8 +246,14 @@ private isSameUser(user1: User, user2: User): boolean {
             this.removeUser(partner as User);
             this.removeUser(this.matched.get(sender) as User);
             this.match_mutex = false;
+            const room = new Room(sender, partner as User);
+            sender.room = room;
+            // @ts-ignore
+            partner.room = room;
             console.log(this.getStats());
-            return this.matched.get(sender) as User;
+             this.matched.delete(sender);
+            this.matched.delete(partner as User);
+            return partner as User;
         }
 
         const partner = this.findNext(sender,prev);
@@ -209,10 +266,13 @@ private isSameUser(user1: User, user2: User): boolean {
         this.matched.set(sender,partner);
         this.matched.set(partner,sender);
         this.match_mutex = false;
-        console.log("________matched here 2 baby_____________"); // all subsequent people are getting matched somehow this is bad
+        console.log("________matched here 2 baby_____________"); 
+        // all subsequent people are getting matched somehow this is bad
         // console.log(this.getAllUsers().length);
         return partner;
     }
+
+
 
     findNext(sender: User, prev: User | null = null): User | null {
         const tiers = this.groupUsersByTier(sender);

@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const crypto_1 = __importDefault(require("crypto"));
 const interface_1 = require("./interface");
-const room2_1 = require("./room2");
 const roomManager2_1 = require("./roomManager2");
 class User {
     constructor(ws) {
@@ -49,6 +48,7 @@ class User {
             const data = JSON.parse(e.data.toString());
             const type = data.type;
             if (!type) {
+                console.log("type not found");
                 (_a = this.ws) === null || _a === void 0 ? void 0 : _a.send(JSON.stringify({ type: interface_1.MessageType.FAILURE, payload: { error: interface_1.ErrorType.INVALID_PAYLOAD } }));
                 return;
             }
@@ -74,13 +74,14 @@ class User {
                     return;
                 }
                 // unka room banao;
-                const room = new room2_1.Room(this, partner);
-                this.room = room;
+                // const room = new Room(this,partner);
+                // this.room = room;
                 this.ws.send(JSON.stringify({ type: interface_1.MessageType.MATCHED }));
                 // this creates a room  constructor adds itself to the roomManager 
                 // roomManager has a map of Roomid: room;
                 // through this we add and delete a room
             }
+            // else if(type == RequestType.STOP)
         }));
     }
     getPartner(sender_socket) {
@@ -94,7 +95,7 @@ class User {
             // RoomManager.getInstance().addUser(this.sender as User);
             while (cnt < 100000 && partner == null) {
                 console.log("try - " + cnt);
-                partner = yield roomManager2_1.RoomManager.getInstance().findMatch(this, this.partner);
+                partner = yield roomManager2_1.RoomManager.getInstance().findMatch(this, null);
                 cnt++;
                 yield new Promise(resolve => setTimeout(resolve, 2));
             }
@@ -105,11 +106,14 @@ class User {
                     } }));
                 return;
             }
-            sender_socket.send(JSON.stringify({ type: interface_1.MessageType.MATCHED, payload: { message: interface_1.MessageType.MATCHED } }));
+            // sender_socket.send(JSON.stringify({type:MessageType.MATCHED, payload: {message: MessageType.MATCHED}}))
             // as soon as client gets this message it creates an RTC peer connection (if not already created);
             // sends an offer to signaling server;
             // recieves an answer from signaling server;
             // connection gets established
+            console.log("____________________________________");
+            console.log(roomManager2_1.RoomManager.getInstance().getStats());
+            console.log("____________________________________");
             this.partner = partner;
             return partner;
         });

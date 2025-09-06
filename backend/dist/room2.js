@@ -13,6 +13,8 @@ class Room {
         this.user2 = user2;
         const cuid = Room.generateCUID();
         this.id = cuid;
+        console.log(`room generated between userid ${user1.id} and ${user2.id}`);
+        this.init_handlers();
     }
     static generateCUID() {
         const timeStamp = Date.now().toString(36);
@@ -29,11 +31,17 @@ class Room {
         ws1.onmessage = (e) => {
             const data = JSON.parse(e.data.toString());
             const type = data.type;
-            const payload = data.paylaod;
+            const payload = data.payload;
             if (!type)
                 return;
             if (!payload) {
+                console.log("payload 2 not found");
+                console.log("message is: " + data);
+                Object.keys(data).map((key) => {
+                    console.log(data[key]);
+                });
                 ws1.send(JSON.stringify({ type: interface_1.MessageType.FAILURE, payload: { error: interface_1.ErrorType.INVALID_PAYLOAD } }));
+                return;
             }
             if (type == interface_1.RequestType.OFFER) {
                 console.log("OFFER AAYA ________________________________");
@@ -43,6 +51,7 @@ class Room {
                     ws1.send(JSON.stringify({ type: "NO reciever socket baby" }));
                 }
                 if (!offer) {
+                    console.log("offer 2 not found");
                     ws1.send(JSON.stringify({ type: interface_1.MessageType.FAILURE, error: interface_1.ErrorType.INVALID_PAYLOAD }));
                     return;
                 }
@@ -52,6 +61,7 @@ class Room {
             else if (type == interface_1.RequestType.ANSWER) {
                 const answer = payload.answer;
                 if (!answer) {
+                    console.log("answer 2 not found");
                     ws1.send(JSON.stringify({ type: interface_1.MessageType.FAILURE, error: interface_1.ErrorType.INVALID_PAYLOAD }));
                     return;
                 }
@@ -59,13 +69,15 @@ class Room {
             }
             else if (type == interface_1.RequestType.ADD_ICE_CANDIDATES) {
                 const sdp = payload.sdp;
-                if (!sdp) {
+                const id = payload.id;
+                if (!sdp || !id) {
+                    console.log("sdp 2 not found");
                     ws1.send(JSON.stringify({ type: interface_1.MessageType.FAILURE, error: interface_1.ErrorType.INVALID_PAYLOAD }));
                     return;
                 }
                 else {
                     ws2.send(JSON.stringify({ type: interface_1.RequestType.ADD_ICE_CANDIDATES, payload: {
-                            sdp
+                            sdp, id
                         } }));
                 }
             }
@@ -73,11 +85,13 @@ class Room {
         ws2.onmessage = (e) => {
             const data = JSON.parse(e.data.toString());
             const type = data.type;
-            const payload = data.paylaod;
+            const payload = data.payload;
             if (!type)
                 return;
             if (!payload) {
+                console.log("payload 1 not found");
                 ws2.send(JSON.stringify({ type: interface_1.MessageType.FAILURE, payload: { error: interface_1.ErrorType.INVALID_PAYLOAD } }));
+                return;
             }
             if (type == interface_1.RequestType.OFFER) {
                 console.log("OFFER AAYA ________________________________");
@@ -87,6 +101,7 @@ class Room {
                     ws2.send(JSON.stringify({ type: "NO reciever socket baby" }));
                 }
                 if (!offer) {
+                    console.log("offer 1 not found");
                     ws2.send(JSON.stringify({ type: interface_1.MessageType.FAILURE, error: interface_1.ErrorType.INVALID_PAYLOAD }));
                     return;
                 }
@@ -96,6 +111,7 @@ class Room {
             else if (type == interface_1.RequestType.ANSWER) {
                 const answer = payload.answer;
                 if (!answer) {
+                    console.log("answer 1 not found");
                     ws2.send(JSON.stringify({ type: interface_1.MessageType.FAILURE, error: interface_1.ErrorType.INVALID_PAYLOAD }));
                     return;
                 }
@@ -103,13 +119,15 @@ class Room {
             }
             else if (type == interface_1.RequestType.ADD_ICE_CANDIDATES) {
                 const sdp = payload.sdp;
-                if (!sdp) {
+                const id = payload.id;
+                if (!sdp || !id) {
+                    console.log("sdp 1 not found");
                     ws2.send(JSON.stringify({ type: interface_1.MessageType.FAILURE, error: interface_1.ErrorType.INVALID_PAYLOAD }));
                     return;
                 }
                 else {
                     ws1.send(JSON.stringify({ type: interface_1.RequestType.ADD_ICE_CANDIDATES, payload: {
-                            sdp
+                            sdp, id
                         } }));
                 }
             }
