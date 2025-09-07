@@ -263,6 +263,7 @@ export default function Page(){
       }
       if(senderPc.current)cleanupPeer(senderPc.current);
       if(recieverPc.current)cleanupPeer(recieverPc.current);
+      ws.current.send(JSON.stringify({type:RequestType.STOP, payload:{message: "stop"}}));
       console.log("stopped");
     }
    
