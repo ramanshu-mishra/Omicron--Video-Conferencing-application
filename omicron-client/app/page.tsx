@@ -30,7 +30,7 @@ export default function Page(){
 
     useEffect(()=>{
       if(!ws.current || ws.current.readyState == ws.current.CLOSED){
-        const socket = new WebSocket("ws://localhost:8080");
+        const socket = new WebSocket("wss://omicron-video-conferencing-application.onrender.com");
         ws.current =  socket;
         init_socketHandlers(socket);
       }
