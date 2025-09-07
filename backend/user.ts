@@ -52,11 +52,17 @@ import { RoomManager } from "./roomManager2";
                         const ws1 = this.room.user1.ws;
                         const ws2 = this.room.user2.ws;
 
+
                          // doosre partner ko skipped ka message bhejo
                         if(ws1 != this.ws){
+                            const us1 = this.room.user1;
+                            us1.room = null;
+
                             ws1.send(JSON.stringify({type: RequestType.SKIP}));
                         }
                         if(ws2 != this.ws){
+                            const us2 = this.room.user2;
+                            us2.room = null;
                             ws2.send(JSON.stringify({type: RequestType.SKIP}));
                         }
                         this.room = null;

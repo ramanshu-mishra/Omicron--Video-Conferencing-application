@@ -60,206 +60,255 @@ var _s = __turbopack_context__.k.signature();
 ;
 function Page() {
     _s();
+    const [lobby, setLobby] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [started, setStarted] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const senderRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
     const recieverRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
-    const [started, setStarted] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
-    const pc1 = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
-    const pc2 = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const [localStream, setLocalStream] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [remoteStream, setRemoteStream] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const ws = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
-    const localStream = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
-    // const pendingCandidates= useRef< RTCIceCandidateInit[]>([]);
+    const senderPc = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const recieverPc = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const localPlayed = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(false);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "Page.useEffect": ()=>{
-            const socket = new WebSocket("ws://localhost:8080");
-            // setWs(socket);
-            ws.current = socket;
-            getLocalStream();
-            socket.onmessage = ({
-                "Page.useEffect": async (e)=>{
-                    const data = JSON.parse(e.data.toString());
-                    const type = data.type;
-                    if (!type) {
-                        console.log("message without type recieved");
-                        return;
+            if (localPlayed.current) return;
+            if (senderRef.current) {
+                init_localStream().then({
+                    "Page.useEffect": (stream)=>{
+                        if (senderRef.current && stream) {
+                            senderRef.current.srcObject = stream;
+                            senderRef.current.play();
+                            localPlayed.current = true;
+                        }
                     }
-                    if (type == "SKIP") {
-                        console.log("partner skipped");
-                        handleNext();
-                    } else if (type == __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MessageType"].MATCHED) {
-                        addVideoTrack();
-                    } else if (type == __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MessageType"].OFFER) {
-                        const offer = data.payload.offer;
-                        if (offer) {
-                            console.log("offer recieved");
-                            init_pc2(offer);
-                        }
-                    } else if (type == __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MessageType"].ANSWER) {
-                        const answer = data.payload.answer;
-                        if (answer && pc1.current) {
-                            console.log("answer recieved");
-                            await pc1.current.setRemoteDescription(new RTCSessionDescription(answer));
-                        }
-                    } else if (type == __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].ADD_ICE_CANDIDATES) {
-                        const sdp = data.payload.sdp;
-                        const id = data.payload.id;
-                        if (sdp) {
-                            try {
-                                if (id == 1) await pc1.current?.addIceCandidate(new RTCIceCandidate(sdp));
-                                else {
-                                    await pc2.current?.addIceCandidate(new RTCIceCandidate(sdp));
-                                }
-                            } catch  {
-                                console.log("not yet");
-                            }
-                            console.log("ice candidates recieved");
-                        }
-                    } else {
-                        console.log(data);
-                    }
-                }
-            })["Page.useEffect"];
+                }["Page.useEffect"]);
+            }
         }
-    }["Page.useEffect"], []);
-    async function getLocalStream() {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: true
-        });
-        // setLocalStream(stream);
-        localStream.current = stream;
-        while(!senderRef.current){
-            await new Promise((resolve)=>setTimeout(resolve, 1));
+    }["Page.useEffect"], [
+        senderRef.current
+    ]);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "Page.useEffect": ()=>{
+            if (!ws.current || ws.current.readyState == ws.current.CLOSED) {
+                const socket = new WebSocket("ws://localhost:8080");
+                ws.current = socket;
+                init_socketHandlers(socket);
+            }
         }
-        senderRef.current.srcObject = stream;
+    }["Page.useEffect"], [
+        ws.current
+    ]);
+    function cleanupPeer(pc) {
+        if (!pc) return;
+        try {
+            pc.onicecandidate = null;
+            pc.ontrack = null;
+            pc.onnegotiationneeded = null;
+            // pc.getSenders().forEach((s) => {
+            //   try {
+            //     if (s.track) s.track.stop();
+            //   } catch {}
+            // });
+            pc.close();
+        } catch  {}
     }
-    function handleNext() {
-        if (!ws.current) {
-            console.log("ws not found");
+    function init_socketHandlers(socket) {
+        socket.onmessage = (e)=>{
+            const data = JSON.parse(e.data.toString());
+            const type = data.type;
+            if (type == __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MessageType"].MATCHED) {
+                sendOffer(socket);
+            } else if (type == __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].OFFER) {
+                const offer = data.payload.offer;
+                handleOffer(offer, socket);
+            } else if (type == __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].ADD_ICE_CANDIDATES) {
+                const sdp = data.payload.sdp;
+                const id = data.payload.id;
+                if (sdp && id) handleiceCandidates(sdp, id);
+            } else if (type == __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].ANSWER) {
+                const answer = data.payload.answer;
+                handleAnswer(answer);
+            } else if (type == __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].SKIP) {
+                handleSkip();
+            } else {
+                console.log(data);
+            }
+        };
+    }
+    async function handleSkip() {
+        await new Promise((resolve)=>setTimeout(resolve, 200));
+        console.log("partner skipped");
+        handleNext(__TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].SKIP);
+    }
+    async function sendOffer(socket) {
+        const stream = await init_localStream();
+        if (!stream) {
+            console.log("no localStream");
             return;
         }
-        if (!started) setStarted(true);
-        if (pc1.current) pc1.current.close();
-        if (pc2.current) pc2.current.close();
         const pc = new RTCPeerConnection();
-        // setpc1(pc);
-        pc1.current = pc;
-        ws.current.send(JSON.stringify({
-            type: __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].FIND_NEXT,
+        try {
+            stream.getTracks().forEach((track)=>pc.addTrack(track, stream));
+        } catch (e) {
+            console.log(e);
+        }
+        pc.onicecandidate = (e)=>{
+            const sdp = e.candidate;
+            if (sdp && ws.current) {
+                ws.current.send(JSON.stringify({
+                    type: __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].ADD_ICE_CANDIDATES,
+                    payload: {
+                        sdp,
+                        id: 1
+                    }
+                }));
+            }
+        };
+        // pc.onnegotiationneeded = async()=>{
+        //     const offer = await pc.createOffer();
+        //     await pc.setLocalDescription(offer);
+        //     if(ws.current && ws.current.readyState == ws.current?.OPEN){
+        //       ws.current.send(JSON.stringify({type: RequestType.OFFER,payload: {offer}}))
+        //     }
+        //     console.log("offer sent");
+        // }
+        pc.onconnectionstatechange = ()=>{
+            console.log("connection state: " + pc.connectionState);
+            if (pc.connectionState == "connected") {
+                setLobby(false);
+            }
+            return;
+        };
+        senderPc.current = pc;
+        const offer = await senderPc.current.createOffer();
+        await senderPc.current.setLocalDescription(offer);
+        socket.send(JSON.stringify({
+            type: __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].OFFER,
             payload: {
-                message: "something"
+                offer
             }
         }));
     }
-    // function handleSkip(){
-    //   if(pc1)pc1.close();
-    //   const pc = new RTCPeerConnection();
-    //   setpc1(pc1);
-    //   ws?.send(JSON.stringify({type: RequestType.SKIP}));
-    //   ws?.send(JSON.stringify({type:RequestType.FIND_NEXT}));
-    // }
-    async function addVideoTrack() {
-        if (!localStream.current) {
-            console.log("localstream not found");
-            return;
-        }
-        if (!pc1.current) {
-            console.log("pc1 not found");
-            return;
-        }
-        const senders = pc1.current.getSenders();
-        const audioTrack = localStream.current.getAudioTracks()[0];
-        const videoTrack = localStream.current.getVideoTracks()[0];
-        const hasAudio = senders.some((s)=>s.track === audioTrack);
-        const hasVideo = senders.some((s)=>s.track === videoTrack);
-        if (!hasAudio && audioTrack) {
-            pc1.current.addTrack(audioTrack, localStream.current);
-        }
-        if (!hasVideo && videoTrack) {
-            pc1.current.addTrack(videoTrack, localStream.current);
-        }
-        init_pc1Handlers(pc1.current);
-    }
-    function handleWSnotfound() {
-        console.log("ws not found");
-    }
-    function init_pc1Handlers(pc) {
-        if (!ws.current) {
-            handleWSnotfound();
-            return;
-        }
-        pc.onnegotiationneeded = async ()=>{
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            if (ws.current) ws.current.send(JSON.stringify({
-                type: __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].OFFER,
-                payload: {
-                    offer: offer
+    async function handleOffer(offer, socket) {
+        let pc;
+        if (!recieverPc.current) {
+            pc = new RTCPeerConnection();
+            pc.ontrack = (e)=>{
+                const remoteVideo = new MediaStream();
+                remoteVideo.addTrack(e.streams[0].getAudioTracks()[0]);
+                remoteVideo.addTrack(e.streams[0].getVideoTracks()[0]);
+                setRemoteStream(remoteVideo);
+                console.log("remote track addded");
+            };
+            pc.onicecandidate = (e)=>{
+                const sdp = e.candidate;
+                if (sdp) {
+                    socket.send(JSON.stringify({
+                        type: __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].ADD_ICE_CANDIDATES,
+                        payload: {
+                            sdp,
+                            id: 2
+                        }
+                    }));
+                    console.log("send ice candidates by 2");
                 }
-            }));
-            console.log("offer sent");
-        };
-        pc.onicecandidate = (e)=>{
-            const sdp = e.candidate;
-            if (!ws.current || !sdp) return;
-            ws.current.send(JSON.stringify({
-                type: __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].ADD_ICE_CANDIDATES,
-                payload: {
-                    sdp: sdp,
-                    id: 1
-                }
-            }));
-            console.log("sent ice candidates");
-        };
-    }
-    function handleStop() {
-        if (!ws.current) {
-            handleWSnotfound();
-            return;
-        }
-        // not implemented on backend yet;
-        ws.current.send(JSON.stringify({
-            type: __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].STOP
-        }));
-    }
-    // reciever pc functions;
-    function init_pc2(offer) {
-        const pc = new RTCPeerConnection();
-        // setpc2(pc);'
-        pc2.current = pc;
-        pc.ontrack = (e)=>{
-            // dekh loonga ye bhi 
-            recieverRef.current.srcObject = e.streams[0];
-        };
-        init_pc2Handlers(pc, offer);
-    }
-    async function init_pc2Handlers(pc, offer) {
-        if (!ws.current) {
-            handleWSnotfound();
-            return;
-        }
-        await pc.setRemoteDescription(new RTCSessionDescription(offer));
-        console.log("remote offer set");
+            };
+            pc.onconnectionstatechange = ()=>{
+                console.log("reciever pc state => " + pc.connectionState);
+            };
+            // setRecieverPc(pc);
+            recieverPc.current = pc;
+        } else pc = recieverPc.current;
+        await pc.setRemoteDescription(offer);
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        ws.current.send(JSON.stringify({
+        socket.send(JSON.stringify({
             type: __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].ANSWER,
             payload: {
                 answer
             }
         }));
         console.log("answer sent");
-        pc.onicecandidate = (e)=>{
-            const sdp = e.candidate;
-            if (!ws.current || !sdp) return;
-            ws.current.send(JSON.stringify({
-                type: __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].ADD_ICE_CANDIDATES,
-                payload: {
-                    sdp,
-                    id: 2
-                }
-            }));
-            console.log("ice candidate 2 sent");
-        };
+    }
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "Page.useEffect": ()=>{
+            if (recieverPc && recieverRef.current && remoteStream) {
+                recieverRef.current.srcObject = remoteStream;
+                recieverRef.current.muted = false;
+                recieverRef.current.play();
+            }
+        }
+    }["Page.useEffect"], [
+        recieverPc.current,
+        recieverRef.current,
+        remoteStream
+    ]);
+    async function handleAnswer(answer) {
+        if (!senderPc.current) {
+            console.log("no senderPc");
+            return;
+        }
+        await senderPc.current.setRemoteDescription(answer);
+        console.log("remote answer set");
+    }
+    async function handleiceCandidates(sdp, id) {
+        if (id == 1 && recieverPc.current) {
+            // it is for reciever
+            await recieverPc.current.addIceCandidate(sdp);
+            console.log("ice candidates set for reciever");
+        } else if (senderPc.current) {
+            //  it is for sender
+            await senderPc.current.addIceCandidate(sdp);
+            console.log("ice candidates set for sender");
+        } else console.log("ice candidate mein gadbadi");
+    }
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "Page.useEffect": ()=>{
+            if (!localStream) {
+                init_localStream();
+            }
+        }
+    }["Page.useEffect"], [
+        localStream
+    ]);
+    async function init_localStream() {
+        if (localStream) return localStream;
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true
+        });
+        setLocalStream(stream);
+        return stream;
+    }
+    function handleNext(message) {
+        if (!ws.current) {
+            console.log("websocket not initialized");
+            return;
+        }
+        if (lobby && message == __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].FIND_NEXT) {
+            console.log("already i lobby");
+            return;
+        }
+        if (lobby && message == __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].SKIP) {
+            setLobby(false);
+        }
+        setLobby(true);
+        if (!started) {
+            setStarted(true);
+        }
+        ;
+        if (senderPc.current) cleanupPeer(senderPc.current);
+        if (recieverPc.current) cleanupPeer(recieverPc.current);
+        senderPc.current = null;
+        recieverPc.current = null;
+        ws.current.send(JSON.stringify({
+            type: __TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].FIND_NEXT,
+            payload: {
+                message: "something"
+            }
+        }));
+        console.log("finding next... ");
     }
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "relative min-h-screen min-w-screen h-screen w-screen bg-neutral-200 ",
@@ -271,17 +320,16 @@ function Page() {
                         className: "h-[90%] w-[49%] bg-red-500 m-4 rounded-2xl",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("video", {
                             ref: recieverRef,
-                            autoPlay: true,
                             playsInline: true,
                             className: "h-full w-full"
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 206,
+                            lineNumber: 264,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 205,
+                        lineNumber: 263,
                         columnNumber: 7
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -289,23 +337,22 @@ function Page() {
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("video", {
                             ref: senderRef,
                             muted: true,
-                            autoPlay: true,
                             playsInline: true,
                             className: "h-full transform scale-x-[-1]"
                         }, void 0, false, {
                             fileName: "[project]/app/page.tsx",
-                            lineNumber: 209,
+                            lineNumber: 267,
                             columnNumber: 9
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 208,
+                        lineNumber: 266,
                         columnNumber: 7
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 204,
+                lineNumber: 262,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -313,38 +360,36 @@ function Page() {
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "h-15 w-30 py-2 rounded-2xl bg-neutral-400 flex justify-center items-center active:scale-90",
-                        onClick: handleNext,
+                        onClick: ()=>handleNext(__TURBOPACK__imported__module__$5b$project$5d2f$interface$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RequestType"].FIND_NEXT),
                         children: started ? "NEXT" : "START"
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 213,
+                        lineNumber: 271,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "h-15 w-30 py-2 rounded-2xl bg-neutral-400 flex justify-center items-center active:scale-90",
-                        onClick: ()=>{
-                            pc1.current?.getStats().then((d)=>console.log(d.values));
-                        },
+                        onClick: ()=>{},
                         children: "STOP"
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 214,
+                        lineNumber: 272,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 212,
+                lineNumber: 270,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/page.tsx",
-        lineNumber: 202,
+        lineNumber: 260,
         columnNumber: 5
     }, this);
 }
-_s(Page, "+aTNBLUjz6SGyhYgYa8hccTJ4mM=");
+_s(Page, "GsvW6m/Cv/c0XkdM1z4eRQ7lL3I=");
 _c = Page;
 var _c;
 __turbopack_context__.k.register(_c, "Page");
