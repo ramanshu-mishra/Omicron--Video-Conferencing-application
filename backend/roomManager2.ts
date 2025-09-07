@@ -259,7 +259,7 @@ private isSameUser(user1: User, user2: User): boolean {
         const partner = this.findNext(sender,prev);
         
         
-        if(!partner){
+        if(!partner || partner.ws.readyState != partner.ws.OPEN){
             this.match_mutex = false;
             return null; 
         }
