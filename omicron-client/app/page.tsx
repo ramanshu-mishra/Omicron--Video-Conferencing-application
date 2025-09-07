@@ -125,6 +125,10 @@ export default function Page(){
       if(pc.connectionState == "connected"){
         setLobby(false);
       }
+      else if(pc.connectionState == "disconnected" || pc.connectionState == "failed"){
+        setLobby(false);
+        handleNext(RequestType.SKIP);
+      }
       return;
     }
      
