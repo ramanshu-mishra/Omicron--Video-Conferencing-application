@@ -30,7 +30,10 @@ export default function Page(){
 
     useEffect(()=>{
       if(!ws.current || ws.current.readyState == ws.current.CLOSED){
-        const socket = new WebSocket("wss://omicron-video-conferencing-application.onrender.com");
+        // const socket = new WebSocket("ws://localhost:8080");
+        // const socket = new WebSocket("ws://192.168.1.86:8080");
+        const socket = new WebSocket("wss://omicron-video-conferencing-application-1.onrender.com");
+
         ws.current =  socket;
         init_socketHandlers(socket);
       }
@@ -234,7 +237,7 @@ export default function Page(){
     }
     
      function handleNext(message:string){
-      if( !ws.current ){
+      if( !ws.current || !(ws.current.readyState == ws.current.OPEN) ){
         console.log("websocket not initialized");
         return;}
       if(lobby && message == RequestType.FIND_NEXT){
