@@ -257,6 +257,14 @@ export default function Page(){
       console.log("finding next... ");
     }
 
+    function handleStop(){
+      if(!ws.current || !(ws.current.readyState == ws.current.OPEN)){
+        console.log("webSocket not initialized yet");return;
+      }
+      if(senderPc.current)cleanupPeer(senderPc.current);
+      if(recieverPc.current)cleanupPeer(recieverPc.current);
+      console.log("stopped");
+    }
    
     
     return(
@@ -273,7 +281,7 @@ export default function Page(){
       <div className="w-full py-2 px-4 flex gap-4 bg-blue-400">
           <div className="h-15 w-30 py-2 rounded-2xl bg-neutral-400 flex justify-center items-center active:scale-90" onClick={()=>handleNext(RequestType.FIND_NEXT)}>{started? "NEXT":"START"}</div>
           <div className="h-15 w-30 py-2 rounded-2xl bg-neutral-400 flex justify-center items-center active:scale-90" onClick={()=>{
-
+            handleStop();
           }}>STOP</div>
       </div>
 
