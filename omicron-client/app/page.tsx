@@ -43,7 +43,7 @@ export default function Page(){
     if(!ws.current || ws.current.readyState == ws.current.CLOSED){
       setWsConnecting(true);
       // const socket = new WebSocket("wss://omicron-video-conferencing-application-1.onrender.com");
-      const socket = new WebSocket("ws://app.talksy.fun");
+      const socket = new WebSocket("wss://app.talksy.fun");
 
 
       ws.current = socket;
