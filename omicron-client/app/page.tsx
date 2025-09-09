@@ -2,7 +2,9 @@
 
 import { MessageType, RequestType } from "@/interface";
 import { useEffect, useRef, useState } from "react";
-
+import NoiseCanvas from "@/components/noise";
+import logo from "@/assets/logo.png";
+import Image from "next/image";
 
 
 export default function Page(){
@@ -13,6 +15,7 @@ export default function Page(){
   const recieverRef = useRef<HTMLVideoElement|null>(null);
   const [localStream, setLocalStream] = useState<MediaStream|null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream|null>(null);
+  const [stopped, setStopped] = useState(true);
   const ws = useRef<WebSocket|null>(null);
   const senderPc = useRef<RTCPeerConnection|null>(null);
   const recieverPc = useRef<RTCPeerConnection|null>(null);
@@ -39,27 +42,37 @@ export default function Page(){
     }
   },[senderRef.current]);
 
-  useEffect(()=>{
+  
+
+  function init_socket(){
     if(!ws.current || ws.current.readyState == ws.current.CLOSED){
       setWsConnecting(true);
-      // const socket = new WebSocket("wss://omicron-video-conferencing-application-1.onrender.com");
       const socket = new WebSocket("wss://app.talksy.fun");
 
-
       ws.current = socket;
-      
-      socket.onopen = () => {
+      socket.onopen = ()=>{
         console.log("web socket connected");
         setWsConnecting(false);
-      };
-      
+      }
       socket.onerror = () => {
-        setWsConnecting(false);
+        console.log("socket error, reconnecting");
+        init_socket();
+
       };
-      
+
+      socket.onclose = ()=>{
+        console.log("reconnecting....");
+        init_socket();
+      }
+
       init_socketHandlers(socket);
     }
-  },[ws.current]);
+  }
+
+  useEffect(()=>{
+    init_socket();
+  },[])
+  
 
   function cleanupPeer(pc: RTCPeerConnection | null) {
     if (!pc) return;
@@ -67,6 +80,7 @@ export default function Page(){
       pc.onicecandidate = null;
       pc.ontrack = null;
       pc.onnegotiationneeded = null;
+      setRemoteStream(null);
       pc.close();
     } catch {}
   }
@@ -245,16 +259,19 @@ export default function Page(){
 
     ws.current.send(JSON.stringify({type:RequestType.FIND_NEXT, payload:{message: "something"}}));
     console.log("finding next... ");
+    setStopped(false);
   }
 
   function handleStop(){
     if(!ws.current || !(ws.current.readyState == ws.current.OPEN)){
       console.log("webSocket not initialized yet");return;
     }
+    setLobby(false);
     if(senderPc.current)cleanupPeer(senderPc.current);
     if(recieverPc.current)cleanupPeer(recieverPc.current);
     ws.current.send(JSON.stringify({type:RequestType.STOP, payload:{message: "stop"}}));
     console.log("stopped");
+    setStopped(true);
   }
 
   // Spinner component
@@ -269,9 +286,9 @@ export default function Page(){
      
 
       {/* Main video area */}
-     <div className=" flex">
+     <div className="flex flex-col sm:flex-row  ">
         {/* Stranger's video (left side) */}
-        <div className="w-1/2 h-full bg-gray-900 relative border-r border-gray-700">
+        <div className="w-full md:w-1/2 h-1/2 md:h-full bg-gray-900 relative border-b md:border-b-0 md:border-r border-gray-700">
           <div className="absolute top-4 left-4 bg-black bg-opacity-70 px-3 py-1 rounded text-sm">
             Stranger
           </div>
@@ -279,16 +296,20 @@ export default function Page(){
             <video 
               ref={recieverRef}  
               playsInline 
-              className=" h-120 w-full object-cover"
+              className=" h-80 md:h-130 sm:h-120  w-full object-cover"
             />
+            
             {lobby && (
               <Spinner />
             )}
             {!remoteStream && !lobby && (
               <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                <div className="text-center">
-                  <div className="text-4xl mb-2">👤</div>
+                <div className="">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-2 text-9xl ">
+                  <Image priority={true} alt="logo" src={logo} height={0} width={0} className="h-1/2 min-h-50 min-w-50"></Image>
+                  </div>
                   <div>No stranger connected</div>
+                  <NoiseCanvas className = "absolute inset-0 flex items-center justify-center text-gray-400 h-full w-full"></NoiseCanvas>
                 </div>
               </div>
             )}
@@ -296,7 +317,7 @@ export default function Page(){
         </div>
 
         {/* Your video (right side) */}
-        <div className="w-1/2 h-full bg-gray-800 relative">
+        <div className="w-full md:w-1/2 h-1/2 md:h-full bg-gray-800 relative">
           <div className="absolute top-4 right-4 bg-black bg-opacity-70 px-3 py-1 rounded text-sm z-10">
             You
           </div>
@@ -305,7 +326,7 @@ export default function Page(){
               ref={senderRef} 
               muted  
               playsInline 
-              className=" h-120 w-full object-cover transform scale-x-[-1]"
+              className=" h-80 md:h-130 sm:h-120  w-full object-cover transform scale-x-[-1]"
             />
             {wsConnecting && (
               <Spinner />
@@ -330,15 +351,16 @@ export default function Page(){
         
         <button
           className="px-6 py-3 h-35 w-35 bg-red-600 hover:bg-red-700 rounded-lg font-semibold text-white transition-all duration-200 transform active:scale-95"
+          style={{backgroundColor: stopped ? "var(--color-red-950)":"var(--color-red-600)" }}
           onClick={handleStop}
-          disabled={wsConnecting}
+          disabled={wsConnecting && stopped}
         >
           Stop
         </button>
       </div>
 
       {/* Status bar */}
-      <div className="bg-yellow-100 p-2 text-center text-sm text-gray-400 ">
+      <div className="bg-yellow-100 p-2 text-center text-sm text-gray-400 flex justify-between">
         {wsConnecting ? (
           <span className="text-yellow-400">Connecting...</span>
         ) : lobby ? (
@@ -348,7 +370,9 @@ export default function Page(){
         ) : (
           <span>Click Start to begin chatting</span>
         )}
+        <div>Ramanshu Sharan Mishra Production</div>
       </div>
+      
     </div>
   )
 }
