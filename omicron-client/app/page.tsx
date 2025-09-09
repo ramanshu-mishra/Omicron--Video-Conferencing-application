@@ -17,6 +17,14 @@ export default function Page(){
   const senderPc = useRef<RTCPeerConnection|null>(null);
   const recieverPc = useRef<RTCPeerConnection|null>(null);
   const localPlayed = useRef(false);
+  const configuration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'},
+                        {urls: "stun:turn.talksy.fun:3478"},
+                          {
+            urls: "turn:turn.talksy.fun:5349?transport=tcp",
+            username: "guest",
+            credential: "somepassword"
+        }
+  ]}
 
   useEffect(()=>{
     if(localPlayed.current)return;
@@ -34,7 +42,9 @@ export default function Page(){
   useEffect(()=>{
     if(!ws.current || ws.current.readyState == ws.current.CLOSED){
       setWsConnecting(true);
-      const socket = new WebSocket("wss://omicron-video-conferencing-application-1.onrender.com");
+      // const socket = new WebSocket("wss://omicron-video-conferencing-application-1.onrender.com");
+      const socket = new WebSocket("ws://app.talksy.fun");
+
 
       ws.current = socket;
       
@@ -104,7 +114,7 @@ export default function Page(){
       return;
     }
 
-    const pc = new RTCPeerConnection();
+    const pc = new RTCPeerConnection(configuration);
        
     try{
       stream.getTracks().forEach(track => pc.addTrack(track, stream));
@@ -142,7 +152,7 @@ export default function Page(){
   async function handleOffer(offer: RTCSessionDescription, socket:WebSocket){
     let pc:RTCPeerConnection;
     if(!recieverPc.current){
-       pc = new RTCPeerConnection();
+       pc = new RTCPeerConnection(configuration);
        pc.ontrack = (e)=>{
         const remoteVideo = new MediaStream();
         remoteVideo.addTrack(e.streams[0].getAudioTracks()[0]);
