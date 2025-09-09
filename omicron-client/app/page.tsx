@@ -8,6 +8,7 @@ import Image from "next/image";
 
 
 export default function Page(){
+  // const [small, notSmall] = useState(false);
   const [lobby,setLobby] = useState(false);
   const [started,setStarted] = useState(false);
   const [wsConnecting, setWsConnecting] = useState(true);
@@ -286,9 +287,9 @@ export default function Page(){
      
 
       {/* Main video area */}
-     <div className="flex flex-col sm:flex-row  ">
+     <div className="flex flex-col sm:flex-row h-screen sm:h-auto">
         {/* Stranger's video (left side) */}
-        <div className="w-full md:w-1/2 h-1/2 md:h-full bg-gray-900 relative border-b md:border-b-0 md:border-r border-gray-700">
+        <div className="w-full md:w-1/2 h-1/2 sm:h-full bg-gray-900 relative border-b md:border-b-0 md:border-r border-gray-700">
           <div className="absolute top-4 left-4 bg-black bg-opacity-70 px-3 py-1 rounded text-sm">
             Stranger
           </div>
@@ -296,7 +297,7 @@ export default function Page(){
             <video 
               ref={recieverRef}  
               playsInline 
-              className=" h-80 md:h-130 sm:h-120  w-full object-cover"
+              className="  md:h-[75vh] sm:h-[70vh]  w-full object-cover"
             />
             
             {lobby && (
@@ -308,7 +309,6 @@ export default function Page(){
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-2 text-9xl ">
                   <Image priority={true} alt="logo" src={logo} height={0} width={0} className="h-1/2 min-h-50 min-w-50"></Image>
                   </div>
-                  <div>No stranger connected</div>
                   <NoiseCanvas className = "absolute inset-0 flex items-center justify-center text-gray-400 h-full w-full"></NoiseCanvas>
                 </div>
               </div>
@@ -317,7 +317,7 @@ export default function Page(){
         </div>
 
         {/* Your video (right side) */}
-        <div className="w-full md:w-1/2 h-1/2 md:h-full bg-gray-800 relative">
+        <div className="w-full md:w-1/2 h-1/2 sm:h-full bg-gray-800 relative">
           <div className="absolute top-4 right-4 bg-black bg-opacity-70 px-3 py-1 rounded text-sm z-10">
             You
           </div>
@@ -326,7 +326,7 @@ export default function Page(){
               ref={senderRef} 
               muted  
               playsInline 
-              className=" h-80 md:h-130 sm:h-120  w-full object-cover transform scale-x-[-1]"
+              className=" h-[50vh] md:h-[75vh] sm:h-[70vh]  w-full object-cover transform scale-x-[-1]"
             />
             {wsConnecting && (
               <Spinner />
@@ -335,10 +335,10 @@ export default function Page(){
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="bg-yellow-100 p-4 flex justify-center gap-4 flex-1">
+      {/* Controls - Fixed position on small screens, normal on larger screens */}
+      <div className="bg-transparent p-4 flex justify-center sm:gap-15 flex-1 sm:relative fixed bottom-4 left-0 right-0 sm:bg-yellow-100  bg-opacity-50 gap-10 z-20 ">
         <button
-          className={`px-6 py-3 h-35 w-35 rounded-lg font-semibold text-white transition-all duration-200 transform active:scale-95 ${
+          className={`sm:px-6 sm:py-3 sm:h-35 sm:w-35 px-4 py-2 h-13 w-25 rounded-3xl font-semibold text-white transition-all duration-200 transform active:scale-95 ${
             lobby 
               ? 'bg-gray-600 cursor-not-allowed' 
               : 'bg-blue-600 hover:bg-blue-700'
@@ -350,7 +350,7 @@ export default function Page(){
         </button>
         
         <button
-          className="px-6 py-3 h-35 w-35 bg-red-600 hover:bg-red-700 rounded-lg font-semibold text-white transition-all duration-200 transform active:scale-95"
+          className="sm:px-6 sm:py-3 sm:h-35 sm:w-35 h-13 w-25 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-3xl font-semibold text-white transition-all duration-200 transform active:scale-95"
           style={{backgroundColor: stopped ? "var(--color-red-950)":"var(--color-red-600)" }}
           onClick={handleStop}
           disabled={wsConnecting && stopped}
@@ -359,8 +359,8 @@ export default function Page(){
         </button>
       </div>
 
-      {/* Status bar */}
-      <div className="bg-yellow-100 p-2 text-center text-sm text-gray-400 flex justify-between">
+      {/* Status bar - Fixed position on small screens, normal on larger screens */}
+      <div className="sm:fixed bg-yellow-100 p-2 text-center text-sm text-gray-400 flex justify-between  fixed bottom-0 left-0 right-0 sm:bg-yellow-100  bg-opacity-50 backdrop-blur-sm z-20">
         {wsConnecting ? (
           <span className="text-yellow-400">Connecting...</span>
         ) : lobby ? (
@@ -370,7 +370,7 @@ export default function Page(){
         ) : (
           <span>Click Start to begin chatting</span>
         )}
-        <div>Ramanshu Sharan Mishra Production</div>
+        <div className="hidden sm:block">Ramanshu Sharan Mishra Production</div>
       </div>
       
     </div>
