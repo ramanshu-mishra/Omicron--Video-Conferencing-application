@@ -81,8 +81,8 @@ export default function Page(){
       pc.onicecandidate = null;
       pc.ontrack = null;
       pc.onnegotiationneeded = null;
-      setRemoteStream(null);
       pc.close();
+      setRemoteStream(null);
     } catch {}
   }
 
