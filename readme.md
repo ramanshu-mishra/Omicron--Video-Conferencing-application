@@ -2,7 +2,7 @@
 
 **Location-based random video chat — think Omegle, but you're more likely to meet someone nearby.**
 
-Live at [talksy.fun](https://talksy.fun)
+Live at [https://omicron-video-conferencing-application-k3a9vyphp.vercel.app/](https://omicron-video-conferencing-application-k3a9vyphp.vercel.app/)
 
 Omicron pairs strangers over live video using WebRTC, with a signaling server that prefers to match you with people close to you geographically (same city → same country → same continent → anywhere) before falling back to a fully random match.
 
