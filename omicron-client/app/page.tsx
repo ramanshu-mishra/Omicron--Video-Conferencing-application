@@ -24,7 +24,7 @@ export default function Page(){
   const configuration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'},
                         {urls: "stun:turn.talksy.fun:3478"},
                           {
-            urls: "turn:turn.talksy.fun:5349?transport=tcp",
+            urls: "turn:sakura.proxy.rlwy.net:3478?transport=tcp",
             username: "guest",
             credential: "somepassword"
         }
@@ -48,7 +48,8 @@ export default function Page(){
   function init_socket(){
     if(!ws.current || ws.current.readyState == ws.current.CLOSED){
       setWsConnecting(true);
-      const socket = new WebSocket("ws://localhost:8080");
+      // const socket = new WebSocket("ws://localhost:8080");
+      const socket = new WebSocket("wss://omicron-video-conferencing-application-production.up.railway.app");
 
       ws.current = socket;
       socket.onopen = ()=>{
