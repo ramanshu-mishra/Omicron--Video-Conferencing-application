@@ -1,4 +1,4 @@
-# Omicron 🎥
+# Talksy 🎥
 
 **Location-based random video chat — think Omegle, but you're more likely to meet someone nearby.**
 
