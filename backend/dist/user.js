@@ -85,7 +85,25 @@ class User {
                 // roomManager has a map of Roomid: room;
                 // through this we add and delete a room
             }
-            // else if(type == RequestType.STOP)
+            else if (type == interface_1.RequestType.STOP) {
+                if (this.room) {
+                    roomManager2_1.RoomManager.getInstance().removeRoom(this.room);
+                    const ws1 = this.room.user1.ws;
+                    const ws2 = this.room.user2.ws;
+                    // doosre partner ko skipped ka message bhejo
+                    if (ws1 != this.ws) {
+                        const us1 = this.room.user1;
+                        us1.room = null;
+                        ws1.send(JSON.stringify({ type: interface_1.RequestType.SKIP }));
+                    }
+                    if (ws2 != this.ws) {
+                        const us2 = this.room.user2;
+                        us2.room = null;
+                        ws2.send(JSON.stringify({ type: interface_1.RequestType.SKIP }));
+                    }
+                    this.room = null;
+                }
+            }
         }));
     }
     getPartner(sender_socket) {

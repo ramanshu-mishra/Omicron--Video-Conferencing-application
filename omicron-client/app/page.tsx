@@ -48,7 +48,7 @@ export default function Page(){
   function init_socket(){
     if(!ws.current || ws.current.readyState == ws.current.CLOSED){
       setWsConnecting(true);
-      const socket = new WebSocket("wss://app.talksy.fun");
+      const socket = new WebSocket("ws://localhost:8080");
 
       ws.current = socket;
       socket.onopen = ()=>{
